@@ -121,8 +121,11 @@ function fitImage(){
 function loadSlide(gIdx,sIdx){
   curGroup=gIdx;curSlide=sIdx;
   var group=GROUPS[gIdx];
-  img.onload=function(){fitImage();};
-  img.src=group.images[sIdx].file;
+  var nextSrc=group.images[sIdx].file;
+  // 大圖載入完成前先淡化舊圖，避免看起來像沒反應
+  img.onload=function(){img.style.opacity="";fitImage();};
+  img.onerror=function(){img.style.opacity="";};
+  if(img.getAttribute("src")!==nextSrc){img.style.opacity="0.35";img.src=nextSrc;}
   headerCounter.textContent=group.label.substring(0,12)+" · "+(sIdx+1)+"/"+group.images.length;
   pageInfo.textContent=(sIdx+1)+" / "+group.images.length;
   btnPrev.disabled=(gIdx===0&&sIdx===0);
@@ -142,7 +145,8 @@ function switchGroup(gIdx){
   group.images.forEach(function(im,i){
     var t=document.createElement("img");
     t.className="thumb"+(i===0?" active":"");
-    t.src=im.file; t.title=im.label;
+    t.loading="lazy";
+    t.src=im.thumb||im.file; t.title=im.label;
     t.onclick=(function(idx){return function(){loadSlide(gIdx,idx);};})(i);
     thumbsEl.appendChild(t);
   });
